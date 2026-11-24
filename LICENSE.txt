@@ -5,8 +5,8 @@ This file preserves the license texts and attribution of upstream components
 and references used by the Reader backend. It does not assign an additional
 license to Reader-specific code.
 
-The memory backend is statically compiled from readers-shared. Its Windows
-binding and read-channel implementation was extracted and adapted primarily
+The memory backend and TCP transport are statically compiled from readers-shared.
+The Windows binding and read-channel implementation was extracted and adapted primarily
 from cs2-reader. The shared source provenance and pinned Hyper-mem ABI files
 are recorded in readers-shared/third_party/NOTICE.txt and
 readers-shared/third_party/hypermem/UPSTREAM.json. No separate backend DLL is used.

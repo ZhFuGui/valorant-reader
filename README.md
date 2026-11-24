@@ -20,7 +20,7 @@ valorant-reader/
    ├─ game/valorant/           # 当前构建身份、布局描述与已分析偏移
    ├─ runtime/                 # 两个共享读取 worker 与有界任务交接
    ├─ synchronization/v1/      # 消费／调试投影、基线、增量与时钟协商
-   ├─ transport/               # TCP 记录、短写及连接隔离，与游戏无关
+   ├─ transport/               # 共享 TCP 的有界控制交接与产品发送资格适配
    └─ platform/windows/        # 共享 QPC 适配与游戏构建的原始 PE 头核验
 ```
 
@@ -32,9 +32,9 @@ valorant-reader/
 
 安装 VS2022 的桌面 C++ 工作负载、v143 工具集和 Windows SDK，打开 `valorant-reader.sln`，选择 `Debug|x64` 或 `Release|x64`。
 
-默认要求同级目录存在 `../readers-shared/readers-shared.props`，也可通过 MSBuild 的 `ReadersSharedDirectory` 指定其目录。工程只导入 Hyper-mem 入口，公共源码与产品沿用同一 CRT、异常展开和优化配置；独立对象文件位于本产品的外置 `IntDir/readers-shared`。共享层负责进程发现、固定实例会话、绑定核验、原生合批与底层地址空间恢复；游戏对象核验、两个 worker、调度、epoch 与订阅仍由本项目管理。
+默认要求同级目录存在 `../readers-shared`，也可通过 MSBuild 的 `ReadersSharedDirectory` 指定其目录。工程组合导入 `readers-shared.props`（唯一 Hyper-mem 后端）及 `readers-shared-tcp.props`；共享源码沿用产品的 CRT、异常展开和优化配置，公共 QPC 只编译一次，独立对象文件位于外置的 `IntDir/readers-shared`。共享层负责进程发现、会话、原生读取、监听、组包、短写及网络预算；游戏对象核验、两个采集 worker、调度、epoch 与订阅仍由本项目管理。
 
-共享源码依赖固定为 [readers-shared](https://github.com/ZhFuGui/readers-shared.git) 提交 `5a0fb3e26dfc7c8188e722fdb0aa340bda65cb3f`；构建前须将该版本源码、构建入口及许可证准备到依赖目录。此提交属于共享层本身，Hyper-mem ABI 的独立来源仍见其 `third_party/hypermem/UPSTREAM.json`。该发布版本的公开接口、实现和构建属性表与本次已验证的接入基线逐字节一致。
+本轮共享源码接入基线为 [readers-shared](https://github.com/ZhFuGui/readers-shared.git) 提交 `47655f96288f0d67d8bdcad2d30bdd69c5f82618`（当前是共享层本地提交，尚未推送）；此前仅含内存入口的 `5a0fb3e` 不能构建本轮 TCP 接入版本。构建前须准备对应源码、构建入口与许可证；Hyper-mem ABI 的独立来源仍见共享层 `third_party/hypermem/UPSTREAM.json`，本项目不复制其内部实现。
 
 默认产物位于 `%TEMP%\valorant-reader\build`。可指定其他磁盘：
 
@@ -148,7 +148,7 @@ New-NetFirewallRule -Name 'ValorantReader-LAN-TCP-13302' -DisplayName 'Valorant 
 
 无窗口运行时应显式传入 `--stop-event`，例如 `--stop-event Global\NorthwindSystems.RuntimeNode.Stop`，再由有权限的控制程序设置同名事件正常停止。`Local\名称` 仅供同一 Windows 会话使用。退出先等待已返回或正在返回的读取任务安全收尾，不强杀线程。不可返回的底层调用不能仅靠进程内逻辑恢复。
 
-主循环负责调度、提交、编码和非阻塞网络 I/O，两个共享 worker 执行绑定、名单、分类和属性读取。管理循环不执行慢读或进程绑定。名单、分类、位置、骨骼、相机分别最多一个在途任务；基础任务优先，业务按请求频率与实测 worker 占用结算服务量。大批次不截断，不削减字段，不复用旧动态值。
+主循环负责调度、采集提交、协议控制及编码，两个共享 worker 执行绑定、名单、分类和属性读取；共享 TCP 服务独占一个网络线程，负责监听、组包和发送。管理循环不执行慢读或进程绑定。名单、分类、位置、骨骼、相机分别最多一个在途任务；基础任务优先，业务按请求频率与实测 worker 占用结算服务量。大批次不截断，不削减字段，不复用旧动态值。
 
 类别采集目标取全部有效订阅的最高请求，分类目标再加 1Hz，名单复制再加 1Hz。请求范围 1..300Hz，支持小数；这是目标上限，不承诺当前硬件和场景达到。无业务订阅时停采属性，分类 1Hz、名单 2Hz。时间线只保留一个待机会，忙碌与迟到如实计数，不积压历史周期或突发补采。
 
@@ -183,7 +183,7 @@ protocol/reader/v1/
 
 握手依次为 Hello → Subscribe → Configured／Reject → Snapshot，随后发送 Delta、Status、Heartbeat。记录边界为四字节大端正文长度加 Protobuf Envelope，正文最多 16MiB。控制请求号非零递增；SetRate 使用本连接最后 Configured 的配置版本，其他连接调频不会使该版本失效。
 
-每连接先发完整基线，后续增量相对该连接最后完整发送的状态。实体 upsert 是本类别整条记录替换，缺失值会清除旧值；删除与属性缺失分别表达。Resync 等待下一次新采样建立完整快照，避免同连接重复已发送序号，重连不借用旧连接基线。每连接只保留一条发送中记录和一个最新待发送状态，不设置帧有效期或按年龄淘汰。编码超限不截断集合，发送原因 1008 并等待新采样；半条 TCP 记录明确失效时关闭该连接，由新基线恢复。
+每连接先发完整基线，后续增量相对该连接最后完整发送的状态。实体 upsert 是本类别整条记录替换，缺失值会清除旧值；删除与属性缺失分别表达。Resync 等待下一次新采样建立完整快照，避免同连接重复已发送序号，重连不借用旧连接基线。每连接只保留一条发送中记录和一个最新待发送状态，不设置帧有效期或按年龄淘汰。共享层提交完整 Protobuf 正文，由其添加一次长度头；协议增量使用 Reliable，每连接至多一个待提交或发送中的正文，只有完整交给本机 TCP 后才推进现有基线，不将其冒充消费者 ACK。控制请求有界排队，完成与断线使用固定标志，不会因控制队列满而丢失。网络回调只交接控制、核验原子 epoch／来源／订阅资格及执行一次定长 QPC 盖戳，不做采集、编码或日志 I/O。编码超限不截断集合，发送原因 1008 并等待新采样；半条 TCP 记录明确失效时关闭该连接，由新基线恢复。
 
 实体引用作用域为 Reader 实例、全局 epoch 和 Reader 分配的 ID；跨流按此引用关联，不直接传地址充当身份。生命周期目录根据完整名单及本轮身份核验维护 ID；临时未知只保留 ID 和缺失值，不沿用旧坐标。原生 Character／ShooterCharacter 分类不直接表示真人、BOT、存活或可见性；队伍关系使用单独核验的 Bomb 团队来源。
 
