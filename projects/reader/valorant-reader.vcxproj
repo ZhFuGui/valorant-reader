@@ -32,6 +32,7 @@
     <ReadersSharedDirectory Condition="'$(ReadersSharedDirectory)'==''">$(ReaderRoot)..\readers-shared\</ReadersSharedDirectory>
   </PropertyGroup>
   <Import Project="$(ReadersSharedDirectory)readers-shared.props" />
+  <Import Project="$(ReadersSharedDirectory)readers-shared-tcp.props" />
   <ItemGroup>
     <ClCompile Include="$(ReaderRoot)src\backends\shared\backend.cpp" />
     <ClInclude Include="$(ReaderRoot)src\backends\shared\backend.hpp" />
@@ -154,10 +155,7 @@
     <ClCompile Include="$(ReaderRoot)src\synchronization\v1\wire.cpp" />
     <ClInclude Include="$(ReaderRoot)src\synchronization\v1\wire.hpp" />
     <ClInclude Include="$(ReaderRoot)src\transport\ipv4.hpp" />
-    <ClInclude Include="$(ReaderRoot)src\transport\record_decoder.hpp" />
     <ClInclude Include="$(ReaderRoot)src\transport\record_handler.hpp" />
-    <ClCompile Include="$(ReaderRoot)src\transport\tcp_peer.cpp" />
-    <ClInclude Include="$(ReaderRoot)src\transport\tcp_peer.hpp" />
     <ClCompile Include="$(ReaderRoot)src\transport\tcp_server.cpp" />
     <ClInclude Include="$(ReaderRoot)src\transport\tcp_server.hpp" />
   </ItemGroup>

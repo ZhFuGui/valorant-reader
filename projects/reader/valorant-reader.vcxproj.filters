@@ -149,10 +149,7 @@
     <ClCompile Include="$(ReaderRoot)src\synchronization\v1\wire.cpp"><Filter>synchronization\v1</Filter></ClCompile>
     <ClInclude Include="$(ReaderRoot)src\synchronization\v1\wire.hpp"><Filter>synchronization\v1</Filter></ClInclude>
     <ClInclude Include="$(ReaderRoot)src\transport\ipv4.hpp"><Filter>transport</Filter></ClInclude>
-    <ClInclude Include="$(ReaderRoot)src\transport\record_decoder.hpp"><Filter>transport</Filter></ClInclude>
     <ClInclude Include="$(ReaderRoot)src\transport\record_handler.hpp"><Filter>transport</Filter></ClInclude>
-    <ClCompile Include="$(ReaderRoot)src\transport\tcp_peer.cpp"><Filter>transport</Filter></ClCompile>
-    <ClInclude Include="$(ReaderRoot)src\transport\tcp_peer.hpp"><Filter>transport</Filter></ClInclude>
     <ClCompile Include="$(ReaderRoot)src\transport\tcp_server.cpp"><Filter>transport</Filter></ClCompile>
     <ClInclude Include="$(ReaderRoot)src\transport\tcp_server.hpp"><Filter>transport</Filter></ClInclude>
   </ItemGroup>

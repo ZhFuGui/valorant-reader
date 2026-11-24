@@ -249,14 +249,11 @@ transport::Record envelope(unsigned body, const Writer& value, std::uint64_t eve
     if (mapping)
         out.uint64(4, *mapping);
     out.message(body, value);
-    const auto prefix = transport::encode_length(static_cast<std::uint32_t>(out.bytes.size()));
-    if (!prefix)
+    if (out.bytes.empty() || out.bytes.size() > transport::max_record_bytes)
         throw wire::Error("record limit");
     transport::Record record;
-    record.bytes.reserve(4 + out.bytes.size());
-    record.bytes.insert(record.bytes.end(), prefix->begin(), prefix->end());
-    record.bytes.insert(record.bytes.end(), out.bytes.begin(), out.bytes.end());
-    record.stamp_offsets.push_back(4 + stamp);
+    record.bytes = std::move(out.bytes);
+    record.stamp_offsets.push_back(stamp);
     return record;
 }
 } // namespace valorant::synchronization::v1

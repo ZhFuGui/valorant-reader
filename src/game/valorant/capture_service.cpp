@@ -91,6 +91,8 @@ struct CaptureService::Impl {
     std::array<bool, JobCount> busy{};
     std::array<capture::Timeline, 5> timelines;
     std::array<model::StreamView, 3> streams;
+    std::array<std::atomic<std::uint64_t>, 3> published_generations{1, 1, 1};
+    std::atomic<std::uint64_t> published_epoch{1};
     std::array<std::uint64_t, 3> sequences{};
     std::array<long double, 3> service{};
     std::array<long double, 3> cost{1000000, 2000000, 1000000};
@@ -104,11 +106,15 @@ struct CaptureService::Impl {
          std::function<void()> wake)
         : backend(std::move(b)), pid(p), clock(c), pool(std::move(wake)) {
         tickets.reserve(2);
+        for (auto& stream : streams)
+            stream.epoch = epoch;
     }
     void invalidate(Stream s) {
-        auto& v = streams[model::stream_index(s)];
+        const auto index = model::stream_index(s);
+        auto& v = streams[index];
         if (v.availability != model::Availability::Unavailable || v.state)
             ++v.generation;
+        published_generations[index].store(v.generation, std::memory_order_release);
         v.availability = model::Availability::Unavailable;
         v.reason = 1009;
         v.epoch = epoch;
@@ -116,6 +122,7 @@ struct CaptureService::Impl {
     }
     void reset(bool session) {
         ++epoch;
+        published_epoch.store(epoch, std::memory_order_release);
         directory.reset();
         roster.reset();
         context.reset();
@@ -142,9 +149,11 @@ struct CaptureService::Impl {
             invalidate(static_cast<Stream>(i + 1));
     }
     void waiting() {
-        for (auto& stream : streams) {
+        for (std::size_t i = 0; i < streams.size(); ++i) {
+            auto& stream = streams[i];
             if (stream.availability != model::Availability::Waiting || stream.state)
                 ++stream.generation;
+            published_generations[i].store(stream.generation, std::memory_order_release);
             stream.availability = model::Availability::Waiting;
             stream.epoch = epoch;
             stream.reason = 1009;
@@ -638,6 +647,13 @@ void CaptureService::unsubscribe(std::uint64_t id) {
 }
 model::StreamView CaptureService::view(Stream stream) const {
     return impl_->streams[model::stream_index(stream)];
+}
+bool CaptureService::current(Stream stream, std::uint64_t generation, std::uint64_t epoch) const noexcept {
+    const auto index = model::stream_index(stream);
+    return index < impl_->published_generations.size() &&
+           impl_->published_epoch.load(std::memory_order_acquire) == epoch &&
+           impl_->published_generations[index].load(std::memory_order_acquire) == generation &&
+           impl_->published_epoch.load(std::memory_order_acquire) == epoch;
 }
 std::uint64_t CaptureService::barrier(Stream stream) const {
     return impl_->sequences[model::stream_index(stream)];

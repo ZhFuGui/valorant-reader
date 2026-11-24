@@ -13,6 +13,7 @@ class CaptureService final : public capture::IProvider {
     capture::Rate subscribe(std::uint64_t, model::Stream, double, bool) override;
     void unsubscribe(std::uint64_t) override;
     model::StreamView view(model::Stream) const override;
+    bool current(model::Stream, std::uint64_t generation, std::uint64_t epoch) const noexcept override;
     std::uint64_t barrier(model::Stream) const override;
     void step() override;
     unsigned wait_ms() const override;

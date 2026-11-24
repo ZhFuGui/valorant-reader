@@ -3,6 +3,7 @@
 #include "synchronization/v1/request.hpp"
 #include "synchronization/v1/schema.hpp"
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <deque>
 #include <unordered_map>
@@ -23,6 +24,7 @@ struct Client {
     model::Availability availability = model::Availability::Waiting;
     std::deque<transport::Record> controls;
     State pending, sending, baseline;
+    std::shared_ptr<std::atomic<std::uint64_t>> eligibility = std::make_shared<std::atomic<std::uint64_t>>(0);
 };
 bool same(const State& a, const State& b) {
     return a && b && a->stamp.epoch == b->stamp.epoch && a->stamp.sequence == b->stamp.sequence &&
@@ -42,6 +44,15 @@ struct Service::Impl {
     }
     transport::Record record(Client& c, unsigned kind, const Writer& body) {
         return envelope(kind, body, ++c.event, c.active_mapping ? std::optional{c.active_mapping} : std::nullopt);
+    }
+    void qualify(Client& c, transport::Record& record, const model::StreamView& source) {
+        const auto stream = *c.stream;
+        const auto generation = source.generation, epoch = source.epoch, revision = c.revision;
+        record.eligible = [provider = &provider, gate = c.eligibility, stream, generation, epoch,
+                           revision](bool started) {
+            const auto current = gate->load(std::memory_order_acquire);
+            return current && (started || current == revision) && provider->current(stream, generation, epoch);
+        };
     }
     void enqueue(Client& c, transport::Record record) {
         if (c.controls.size() >= 16)
@@ -65,6 +76,7 @@ struct Service::Impl {
         auto value = record(c, 16, body);
         value.source_token = v.generation;
         value.subscription_revision = c.revision;
+        qualify(c, value, v);
         enqueue(c, std::move(value));
         c.availability = v.availability;
         c.generation = v.generation;
@@ -76,6 +88,7 @@ struct Service::Impl {
         c.period = rate.period_ns;
         c.config = rate.revision;
         ++c.revision;
+        c.eligibility->store(c.revision, std::memory_order_release);
         c.minimum_sequence = provider.barrier(*c.stream) + 1;
         c.pending.reset();
         c.baseline.reset();
@@ -169,6 +182,7 @@ struct Service::Impl {
                 return;
             }
             ++c.revision;
+            c.eligibility->store(c.revision, std::memory_order_release);
             c.pending.reset();
             c.baseline.reset();
             c.sending.reset();
@@ -219,6 +233,10 @@ struct Service::Impl {
                 value.source_token = state->generation;
                 value.subscription_revision = c.revision;
                 value.capture_sequence = state->stamp.sequence;
+                auto source = provider.view(*c.stream);
+                source.generation = state->generation;
+                source.epoch = state->stamp.epoch;
+                qualify(c, value, source);
                 c.sending = std::move(state);
                 return value;
             } catch (const wire::Error&) {
@@ -297,32 +315,36 @@ std::optional<transport::Record> Service::next(transport::ConnectionId id) {
     return impl_->next(id);
 }
 bool Service::valid(transport::ConnectionId id, const transport::Record& record, bool started) {
-    if (!record.source_token)
-        return true;
-    const auto& c = impl_->clients.at(id);
-    if (!c.stream)
-        return false;
-    const auto v = impl_->provider.view(*c.stream);
-    if (*record.source_token != v.generation)
-        return false;
-    return started || record.subscription_revision == c.revision;
+    (void)id;
+    return !record.eligible || record.eligible(started);
 }
 void Service::sent(transport::ConnectionId id, const transport::Record& record) {
     auto& c = impl_->clients.at(id);
     if (record.clock_candidate && *record.clock_candidate == c.candidate)
         c.sampled_candidate = *record.clock_candidate;
     if (record.capture_sequence && record.subscription_revision == c.revision && c.sending &&
-        record.capture_sequence == c.sending->stamp.sequence) {
+        record.capture_sequence == c.sending->stamp.sequence && valid(id, record, true)) {
         c.baseline = std::move(c.sending);
         ++c.sent_count;
         c.next_send = capture::nanoseconds(impl_->clock) + c.period;
     }
 }
 void Service::disconnected(transport::ConnectionId id) noexcept {
+    const auto client = impl_->clients.find(id);
+    if (client != impl_->clients.end())
+        client->second.eligibility->store(0, std::memory_order_release);
     try {
         impl_->provider.unsubscribe(id);
     } catch (...) {
     }
     impl_->clients.erase(id);
+}
+void Service::discarded(transport::ConnectionId id, const transport::Record& record) {
+    auto& c = impl_->clients.at(id);
+    if (record.capture_sequence && record.subscription_revision == c.revision && c.sending &&
+        record.capture_sequence == c.sending->stamp.sequence) {
+        c.sending.reset();
+        c.baseline.reset();
+    }
 }
 } // namespace valorant::synchronization::v1

@@ -86,12 +86,21 @@ int serve(const ServerOptions& options, std::ostream& output, std::ostream& erro
         std::uint64_t listening_since = 0;
         try {
             transport::TcpServer server(options.port, options.maximum_connections, options.bind);
-            output << "{\"service\":\"listening\",\"bind\":\"" << options.bind << "\",\"port\":" << options.port
-                   << ",\"pid\":" << (options.pid ? std::to_string(*options.pid) : "null")
-                   << ",\"capture_workers\":2,\"protocol\":1}\n"
-                   << std::flush;
-            listening_since = capture::nanoseconds(clock);
-            server.run(protocol, clock, stop.value, wake.value);
+            server.run(protocol, clock, stop.value, wake.value, [&](readers::transport::ServiceStatus status) {
+                if (status.state == readers::transport::ServiceState::Listening) {
+                    listening_since = capture::nanoseconds(clock);
+                    output << "{\"service\":\"listening\",\"bind\":\"" << options.bind
+                           << "\",\"port\":" << status.bound_port
+                           << ",\"pid\":" << (options.pid ? std::to_string(*options.pid) : "null")
+                           << ",\"capture_workers\":2,\"protocol\":1}\n"
+                           << std::flush;
+                } else if (status.state == readers::transport::ServiceState::Recovering) {
+                    errors << "{\"service\":\"unavailable\",\"reason\":1009,\"transport\":"
+                           << static_cast<unsigned>(status.error.code) << ",\"native\":" << status.error.native_status
+                           << "}\n"
+                           << std::flush;
+                }
+            });
         } catch (const std::exception&) {
             if (listening_since) {
                 recovery.progress(listening_since);
@@ -99,7 +108,7 @@ int serve(const ServerOptions& options, std::ostream& output, std::ostream& erro
             }
             errors << "{\"service\":\"unavailable\",\"reason\":1009}\n" << std::flush;
             const auto until = recovery.retry_at(capture::nanoseconds(clock));
-            // 端口或 socket 故障只重建传输；等待期间仍处理采集完成与停止。
+            // 共享层自行恢复端口/socket 故障；仅服务对象构造、启动或 Failed 才走这里重建。
             while (capture::nanoseconds(clock) < until && WaitForSingleObject(stop.value, 0) != WAIT_OBJECT_0) {
                 ResetEvent(wake.value);
                 capture.step();

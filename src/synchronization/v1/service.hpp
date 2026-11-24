@@ -22,6 +22,7 @@ class Service final : public transport::IRecordHandler {
     std::optional<transport::Record> next(transport::ConnectionId) override;
     bool valid(transport::ConnectionId, const transport::Record&, bool) override;
     void sent(transport::ConnectionId, const transport::Record&) override;
+    void discarded(transport::ConnectionId, const transport::Record&) override;
     void disconnected(transport::ConnectionId) noexcept override;
 
   private:
