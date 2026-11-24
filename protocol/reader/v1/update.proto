@@ -1,0 +1,59 @@
+syntax = "proto3";
+package valorant.reader.v1;
+import "reader/v1/model/position.proto";
+import "reader/v1/model/skeleton.proto";
+import "reader/v1/model/view.proto";
+
+enum Stream {
+  STREAM_UNSPECIFIED = 0; // 未指定类别，订阅必须拒绝。
+  STREAM_POSITIONS = 1; // 人物位置，单独采样、打包和订阅。
+  STREAM_SKELETONS = 2; // 人物骨骼，单独采样、打包和订阅。
+  STREAM_VIEW = 3; // 独立相机，不依赖身体存活或其他类别完成。
+}
+
+message ClockDescriptor {
+  bytes domain_id = 1; // 非零 16 字节 Reader 时钟域；未经协商不能直接跨机相减。
+  fixed64 frequency = 2; // QPC 每秒计数，必须为正；不是采集频率。
+  uint64 revision = 3; // 本连接固定的时钟描述版本；变化时重新握手，旧映射失效。
+}
+
+message CaptureInterval {
+  optional fixed64 started_qpc = 1; // 该类别本批第一次读取前的瞬间，不冒充名单复制开始时间。
+  optional fixed64 read_finished_qpc = 2; // 本批最后读取及必要读取核验完成的瞬间。
+  optional fixed64 finished_qpc = 3; // 本批纯 CPU 整理与提交结束；缺失不能填零或借用别批。
+}
+
+message CaptureMeta {
+  uint64 epoch = 1; // 已建立的进程实例、地址空间及世界上下文代次，必须为正。
+  uint64 capture_sequence = 2; // 本流新采样的正序号；发送、心跳或重连不能伪造新采样。
+  uint64 config_revision = 3; // 开批冻结的配置版本，不在发送时替换成最新配置。
+  uint64 target_period_ns = 4; // 本批采用的类别目标周期，单位纳秒；不是实测耗时或达成承诺。
+  uint64 clock_revision = 5; // 所有本批 QPC 锚点所属的已握手时钟版本。
+  CaptureInterval interval = 6; // 该类别自身的真实观察区间，不要求跨流同一时刻。
+}
+
+message Snapshot {
+  oneof state {
+    model.PositionCollection positions = 1; // 人物位置的完整替换基线。
+    model.SkeletonCollection skeletons = 2; // 人物骨骼的完整替换基线。
+    model.ViewState view = 3; // 相机完整状态，消息存在但 camera 缺失可清除旧相机。
+  }
+}
+
+message Delta {
+  uint64 base_capture_sequence = 1; // 同 epoch、同流、此前完整发送状态的序号；消费者必须连续应用。
+  oneof changes {
+    model.PositionChanges positions = 2; // 相对基线的人物位置变化。
+    model.SkeletonChanges skeletons = 3; // 相对基线的人物骨骼变化。
+    model.ViewState view = 4; // 相机发生变化时整体替换，camera 缺失表示清除。
+  }
+  // changes 缺失表示状态内容经本批新读取后仍相同；仍使用本批真实采样序号与区间。
+}
+
+message Update {
+  CaptureMeta meta = 1; // 更新身份与时间；同连接更新序号严格增加，不能用序号跨度冒充实际 FPS。
+  oneof body {
+    Snapshot snapshot = 2; // 初次订阅、重连或恢复基线时使用。
+    Delta delta = 3; // 基于同连接已完整发送状态的变化；不能跨连接共用基线。
+  }
+}

@@ -1,0 +1,53 @@
+syntax = "proto3";
+package valorant.reader.v1.model;
+
+enum SkeletonLayout {
+  SKELETON_LAYOUT_UNSPECIFIED = 0; // 没有可解释布局，消费者不能推测。
+  SKELETON_LAYOUT_MAIN_22 = 1; // 已核验名称及祖先关系的 22 点布局，下标见 MainJoint。
+}
+
+// 常量语义表，不逐帧传输；Reader 的原生骨点下标可以因资产不同而不同。
+enum MainJoint {
+  MAIN_JOINT_BODY_ROOT = 0; // 躯干根，选中点中没有父点。
+  MAIN_JOINT_PELVIS = 1; // 骨盆，父点为躯干根。
+  MAIN_JOINT_LOWER_SPINE = 2; // 下脊柱，父点为躯干根，不是骨盆。
+  MAIN_JOINT_CHEST = 3; // 胸部，最近的已选原生祖先为下脊柱。
+  MAIN_JOINT_NECK = 4; // 颈，父点为胸。
+  MAIN_JOINT_HEAD = 5; // 头，父点为颈。
+  MAIN_JOINT_LEFT_CLAVICLE = 6; // 左锁骨，父点为胸。
+  MAIN_JOINT_LEFT_SHOULDER = 7; // 左肩，父点为左锁骨。
+  MAIN_JOINT_LEFT_ELBOW = 8; // 左肘，父点为左肩。
+  MAIN_JOINT_LEFT_HAND = 9; // 左手，父点为左肘。
+  MAIN_JOINT_RIGHT_CLAVICLE = 10; // 右锁骨，父点为胸。
+  MAIN_JOINT_RIGHT_SHOULDER = 11; // 右肩，父点为右锁骨。
+  MAIN_JOINT_RIGHT_ELBOW = 12; // 右肘，父点为右肩。
+  MAIN_JOINT_RIGHT_HAND = 13; // 右手，父点为右肘。
+  MAIN_JOINT_LEFT_HIP = 14; // 左髋，父点为骨盆。
+  MAIN_JOINT_LEFT_KNEE = 15; // 左膝，父点为左髋。
+  MAIN_JOINT_LEFT_FOOT = 16; // 左足，父点为左膝。
+  MAIN_JOINT_LEFT_TOE = 17; // 左趾，父点为左足。
+  MAIN_JOINT_RIGHT_HIP = 18; // 右髋，父点为骨盆。
+  MAIN_JOINT_RIGHT_KNEE = 19; // 右膝，父点为右髋。
+  MAIN_JOINT_RIGHT_FOOT = 20; // 右足，父点为右膝。
+  MAIN_JOINT_RIGHT_TOE = 21; // 右趾，父点为右足。
+}
+
+message Skeleton {
+  SkeletonLayout layout = 1; // 非零已知布局；未知资产不套用此布局。
+  fixed32 presence_mask = 2; // 低 22 位对应有效骨点；其他位必须为零，缺失点不能取上一批。
+  repeated double world_xyz = 3 [packed = true]; // 按有效位下标升序紧密排列 XYZ；长度必须为有效位数的三倍。
+}
+
+message EntitySkeleton {
+  uint64 entity_id = 1; // 与人物位置流共享的身份；不要求两流采样序号或时间一致。
+  Skeleton skeleton = 2; // 本次主干骨骼；没有有效点、来源失败或未知模型时缺失。
+}
+
+message SkeletonCollection {
+  repeated EntitySkeleton entities = 1; // 完整骨骼结果集合；实体存在但骨骼缺失与实体已移除分开表达。
+}
+
+message SkeletonChanges {
+  repeated EntitySkeleton upserts = 1; // 完整替换这些实体的骨骼记录；不得按字段与旧骨骼合并。
+  repeated uint64 removed_entity_ids = 2; // 已明确移出的身份；不能与 upserts 重复。
+}

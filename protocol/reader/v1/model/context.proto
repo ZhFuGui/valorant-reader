@@ -1,0 +1,39 @@
+syntax = "proto3";
+package valorant.reader.v1.model;
+
+message MapIdentity {
+  string package_path = 1; // 已核验 UPackage 完整路径，例如 /Game/Maps/Canyon/Canyon；消费端自行匹配底图。
+  string world_name = 2; // 本次 UWorld 原生名称，例如 Canyon；不把任意 Actor 名称当作地图。
+}
+
+enum LocalCharacterState {
+  LOCAL_CHARACTER_UNKNOWN = 0; // 当前控制链没有完整证据，不能沿用上批实体 ID。
+  LOCAL_CHARACTER_ABSENT = 1; // 已确认当前没有受控 Character，包括无 Pawn 或有效的非人物 Pawn。
+  LOCAL_CHARACTER_UNRESOLVED = 2; // 身体已确认，但尚不能关联当前人物集合的 Reader 身份。
+  LOCAL_CHARACTER_RESOLVED = 3; // 已关联同 Reader 实例、同 epoch 的人物实体。
+}
+
+message LocalCharacter {
+  LocalCharacterState state = 1; // 明确区分未知、没有身体、待关联及关联完成。
+  optional uint64 entity_id = 2; // 仅 Resolved 存在且非零；依据 Controller.Pawn 与反向控制核验，不使用观战目标。
+}
+
+message TeamIdentity {
+  oneof native_team {
+    uint32 bomb_team = 1; // BombTeamComponent 原生 uint8，合法范围 0..255；0 是有效队伍，0xfe 不产生确定敌我。
+  }
+  // 目前仅接入已核验的 Bomb 原生方案；其他组件不得强行解释为同一个整数队伍。
+}
+
+enum Relationship {
+  RELATIONSHIP_UNKNOWN = 0; // 未取得双方来源、未支持该原生关系实现或原生结果不确定。
+  RELATIONSHIP_SELF = 1; // 当前受控人物本身；不因相机切换观战目标而改变。
+  RELATIONSHIP_ALLY = 2; // 对本批 reference_team 的已核验友方关系。
+  RELATIONSHIP_ENEMY = 3; // 对本批 reference_team 的已核验敌方关系。
+}
+
+message PositionContext {
+  MapIdentity map = 1; // 缺失清除旧地图身份；不因未知地图自动使用上一地图底图。
+  LocalCharacter local_character = 2; // 每个完整上下文都存在；Unknown 也明确发送空消息。
+  TeamIdentity reference_team = 3; // 本地控制器 PlayerState 的队伍；死亡后仍可有效，不借用被观战人物。
+}

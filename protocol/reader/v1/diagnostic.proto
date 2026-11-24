@@ -1,0 +1,38 @@
+syntax = "proto3";
+package valorant.reader.v1;
+import "reader/v1/update.proto";
+
+// 仅显式调试订阅可得到；正常消费订阅不读取、构造或传输这些专用证据。
+message SourceDiagnostics {
+  optional uint32 directory_status = 1; // 名单读取及关闭结果；缺失表示本记录没有这项观察。
+  optional uint64 directory_generation = 2; // 实际采用的完整目录代次，不伪装成本类别采样序号。
+  CaptureInterval directory_interval = 3; // 目录自己的观察区间，不套用本类别时间。
+  optional uint64 slots = 4; // 原始完整来源槽位数，包含空、重复和非法地址。
+  optional uint64 empty = 5; // 明确为空的来源槽位数。
+  optional uint64 invalid = 6; // 非法来源地址数。
+  optional uint64 duplicates = 7; // 已保留来源关联的重复地址数。
+  optional uint64 classification_generation = 8; // 实际采用的分类代次，允许复用于多次属性读取。
+  CaptureInterval classification_interval = 9; // 分类自己的真实观察区间。
+  optional uint64 planned = 10; // 本批计划任务数，不是允许采集数量上限。
+  optional uint64 unexecuted = 11; // 未执行任务数；完整结果必须为零。
+  optional uint64 metadata_source_retries = 12; // 临时来源变化后的有限完整重取次数，不代表重绑次数。
+}
+
+message EntityEvidence {
+  uint64 entity_id = 1; // 与本次消费状态对应的 Reader 身份。
+  optional uint64 actor_address = 2; // 本次目标 Actor 地址，仅供诊断，不是消费身份。
+  optional uint64 type_address = 3; // 本次核验的类型引用。
+  optional uint32 registry_index = 4; // 本次对象注册索引，零与缺失分别处理。
+  optional uint32 weak_serial = 5; // 原生弱序号，零不提供原生代际证明。
+  optional uint64 outer_address = 6; // 本次所属对象地址，零可以是有效根。
+  optional uint32 source_status = 7; // 读取或核验结果，编号与实现中的 ResolutionStatus 对照。
+  optional uint32 failed_at = 8; // 骨骼失败阶段，对照 PoseFailureStage；单点失败另列。
+  repeated uint32 joint_status = 9 [packed = true]; // 已执行骨骼的逐点终态；未执行时缺失，不填一组成功。
+  optional bool leader_pose = 10; // 本批是否实际采用有效 Leader；false 不等于未执行。
+}
+
+message DiagnosticUpdate {
+  Update update = 1; // 与此诊断绑定的消费更新；不能借用其他采样的身份和时间。
+  SourceDiagnostics source = 2; // 可用的来源、覆盖与任务证据。
+  repeated EntityEvidence entities = 3; // 只包含本次实际取得的实体证据；不为凑字段补读未实现数据。
+}

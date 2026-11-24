@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{CA9A3568-2439-4B22-AE58-B9532DE5CE1B}</ProjectGuid>
+    <RootNamespace>valorant</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <ReaderRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\..\..'))</ReaderRoot>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(ReaderRoot)build\artifacts.props" />
+  <Import Project="$(ReaderRoot)build\compiler.props" />
+  <PropertyGroup>
+    <ReadersSharedDirectory Condition="'$(ReadersSharedDirectory)'==''">$(ReaderRoot)..\readers-shared\</ReadersSharedDirectory>
+  </PropertyGroup>
+  <Import Project="$(ReadersSharedDirectory)readers-shared.props" />
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\backends\shared\backend.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\backends\shared\backend.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\app\main.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\app\application.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\app\composition.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\profile.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\pointer_codec.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\roots.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\names.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\platform\windows\qpc_clock.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ReaderRoot)src\app\application.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\app\composition.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\memory\backend.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\memory\read_channel.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\model\snapshot.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\capture\source.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\profile.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\offsets.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\pointer_codec.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\roots.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\names.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\reading.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\platform\windows\qpc_clock.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\runtime\output.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\transport\record.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ReaderRoot)README.md" />
+    <None Include="$(ReaderRoot)LICENSE.txt" />
+    <None Include="$(ReaderRoot)build\compiler.props" />
+    <None Include="$(ReaderRoot)build\artifacts.props" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\app\inspection.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\directory.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\platform\windows\pe_image.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ReaderRoot)src\app\inspection.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\directory.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\platform\windows\pe_image.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\memory\read_error.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\objects.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\classification.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\types.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\objects.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\classification.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\types.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\observation.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\scene.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\position.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\model\geometry.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\observation.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\scene.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\position.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\view.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\view.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\model\camera.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\rig.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\rig.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\model\skeleton.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\rig_catalog.cpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\pose.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\rig_catalog.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\pose.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ReaderRoot)protocol\reader\v1\contract.json" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\diagnostic.proto" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\model\foundation\common.proto" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\model\position.proto" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\model\skeleton.proto" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\model\view.proto" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\reader.proto" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\reader.descriptor.pb" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\schema-manifest.json" />
+    <None Include="$(ReaderRoot)protocol\reader\v1\update.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ReaderRoot)src\capture\clock.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\capture\demand.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\capture\provider.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\entity_catalog.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\entity_catalog.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\model\stream.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\runtime\work_pool.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\runtime\work_pool.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\capture_service.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\capture_service.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\app\server.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\app\server.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\synchronization\v1\codec.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\codec.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\synchronization\v1\request.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\request.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\schema.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\synchronization\v1\service.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\service.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\synchronization\v1\wire.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\wire.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\transport\ipv4.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\transport\record_decoder.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\transport\record_handler.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\transport\tcp_peer.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\transport\tcp_peer.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\transport\tcp_server.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\transport\tcp_server.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\components.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\components.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\context.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\context.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\team.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\team.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\model\context.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\app\arguments.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\app\arguments.hpp" />
+    <ClCompile Include="$(ReaderRoot)src\runtime\binding_health.cpp" />
+    <ClInclude Include="$(ReaderRoot)src\runtime\binding_health.hpp" />
+    <ClInclude Include="$(ReaderRoot)src\runtime\recovery.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="$(ReaderRoot)resources\version.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

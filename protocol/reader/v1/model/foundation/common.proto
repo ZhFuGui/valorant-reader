@@ -1,0 +1,15 @@
+syntax = "proto3";
+package valorant.reader.v1.model;
+
+// 当前构建原生双精度坐标；不在协议层换算单位或压缩精度。
+message Vector3 {
+  double x = 1; // X 分量；零是有效坐标。
+  double y = 2; // Y 分量；零是有效坐标。
+  double z = 3; // Z 分量；零是有效坐标。
+}
+
+message Rotation {
+  double pitch = 1; // 原生俯仰角，单位为度。
+  double yaw = 2; // 原生偏航角，单位为度。
+  double roll = 3; // 原生翻滚角，单位为度。
+}

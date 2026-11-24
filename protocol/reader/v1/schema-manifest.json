@@ -1,0 +1,22 @@
+{
+  "protocol": "valorant.reader.v1",
+  "status": "implemented_validated",
+  "frozen": true,
+  "entry": "reader/v1/reader.proto",
+  "sources": [
+    "reader/v1/diagnostic.proto",
+    "reader/v1/model/context.proto",
+    "reader/v1/model/foundation/common.proto",
+    "reader/v1/model/position.proto",
+    "reader/v1/model/skeleton.proto",
+    "reader/v1/model/view.proto",
+    "reader/v1/reader.proto",
+    "reader/v1/update.proto"
+  ],
+  "descriptor_sha256": "ef15d4c567861cd4f98895cd36b5fd3037045ce5b059155bc891b3bd6d4caf01",
+  "descriptor_committed": true,
+  "canonicalization": "含全部 imports、不含 source_info；FileDescriptorProto 按 name 升序，确定性序列化。描述符、源码、C++ 握手摘要须保持一致。",
+  "runtime_server_implemented": true,
+  "server_activation": "无参数或 --serve 进入自动发现的持续服务；--check/--inspect/--help 不启动监听。部署不自动执行程序，运行需另行明确授权。",
+  "revision": 2
+}

@@ -1,0 +1,127 @@
+syntax = "proto3";
+package valorant.reader.v1;
+import "reader/v1/update.proto";
+import "reader/v1/diagnostic.proto";
+
+// 单端口 TCP 长连接，每连接一个类别。记录为四字节大端长度加 Envelope，正文 1..16MiB。
+enum ProjectionMode {
+  PROJECTION_MODE_UNSPECIFIED = 0; // 显式给出此值时拒绝，缺失字段按消费模式处理。
+  PROJECTION_MODE_CONSUMER = 1; // 普通消费消息，只携带实际使用的数据及必要身份和时间。
+  PROJECTION_MODE_DIAGNOSTIC = 2; // 显式调试投影，可以取得额外来源证据。
+}
+
+message Hello {
+  uint32 protocol_version = 1; // 首版为 1；必须与描述符摘要一起精确配对。
+  bytes schema_sha256 = 2; // 规范化描述符的 32 字节摘要，用于严格配对。
+  bytes reader_instance_id = 3; // 本次 Reader 启动的非零 16 字节实例标识。
+  ClockDescriptor clock = 4; // 本连接全部原始 QPC 锚点所属的时钟描述。
+  repeated Stream implemented_streams = 5; // 只声明真正接入服务的类别，不能用空列表假装能力已实现。
+  bool incremental_updates = 6; // 是否已实现基线、增量和对应恢复，不能仅因定义了消息就置为 true。
+  bool clock_exchange = 7; // 是否已实现以下时钟交换及映射版本确认。
+  double maximum_request_hz = 8; // 服务实际支持的请求上限；不保证负载下达到该频率。
+}
+
+message Subscribe {
+  uint64 request_id = 1; // 本连接非零递增的控制请求号。
+  uint32 protocol_version = 2; // 客户端请求版本，须严格匹配。
+  bytes schema_sha256 = 3; // 客户端支持的描述符摘要，不能静默兼容不匹配结构。
+  Stream stream = 4; // 本连接唯一类别；其他类别另建连接，不影响已有类别。
+  double requested_hz = 5; // 有限正数，范围为 1..Hello.maximum_request_hz，可为小数；非法或超限明确拒绝。
+  optional ProjectionMode projection = 6; // 缺失按消费模式；调试必须显式选择。
+}
+
+message SetRate {
+  uint64 request_id = 1; // 非零递增请求号；拒绝时保留原配置。
+  uint64 expected_config_revision = 2; // 本连接最后 Configured 回执的版本；其他连接调频不使此前置版本失效。
+  double requested_hz = 3; // 本连接新请求，同时表达类别采集需求和本连接发布上限。
+}
+
+message Configured {
+  uint64 request_id = 1; // 对应 Subscribe 或 SetRate 请求号。
+  Stream stream = 2; // 此连接绑定的类别。
+  ProjectionMode projection = 3; // 实际采用的投影，不静默改成调试模式。
+  double requested_hz = 4; // 原样确认被接受的请求频率。
+  uint64 adopted_period_ns = 5; // 整数纳秒周期及其舍入结果，不能隐藏采用值。
+  double category_demand_hz = 6; // 同类别全部有效订阅的最大请求，仅表示目标。
+  uint64 config_revision = 7; // 本次提交后的配置版本；下一开批生效，在途批次保持旧配置。
+}
+
+enum Availability {
+  AVAILABILITY_UNSPECIFIED = 0; // 未明确状态，不能当作正常。
+  AVAILABILITY_WAITING = 1; // 等待目标或有效会话，不是新采样。
+  AVAILABILITY_READY = 2; // 服务可继续提供新结果；本事件本身不复活旧数据。
+  AVAILABILITY_UNAVAILABLE = 3; // 明确不可用，撤销相应旧结果的当前资格。
+  AVAILABILITY_STOPPING = 4; // 用户停止，压过重试和恢复。
+}
+
+message Status {
+  Availability availability = 1; // 本服务事件的明确状态。
+  optional uint64 epoch = 2; // 有已知代次时才携带；新全局 epoch 隔离全部旧类别数据。
+  bool global_scope = 3; // true 表示整个会话或世界失效；false 仅影响本连接类别。
+  optional uint32 reason_code = 4; // 已定义的内部原因码；没有可靠原因时省略，不编造字符串。
+}
+
+message Reject {
+  uint64 request_id = 1; // 对应被拒绝的控制请求。
+  uint32 reason_code = 2; // 已定义的非零拒绝编号，不以成功空状态代替。
+}
+
+message ClockQuery {
+  uint64 request_id = 1; // 客户端本地保留该请求发送前计数 t0，完整接收响应后记录 t3。
+  uint64 mapping_revision = 2; // 本轮校准候选版本；同一轮可多次采样，不表示映射已经启用。
+}
+
+message ClockSample {
+  uint64 request_id = 1; // 对应请求号，客户端按号关联自己的 t0 与 t3。
+  uint64 mapping_revision = 2; // 原样返回候选映射版本。
+  uint64 clock_revision = 3; // 本次 Reader 两个锚点所属的时钟描述版本。
+  optional fixed64 received_qpc = 4; // Reader 收完整请求后的 t1；t2 使用外层真实 send_started_qpc。
+}
+
+message UseClockMapping {
+  uint64 request_id = 1; // 非零递增控制请求号。
+  uint64 mapping_revision = 2; // 客户端已经据完整交换求得映射的候选版本，不传入预测时刻代替原始锚点。
+  uint64 clock_revision = 3; // 必须对应当前 Reader 时钟和最近仍有效的候选交换。
+}
+
+message ClockMappingSelected {
+  uint64 request_id = 1; // 对应映射选择请求，回执后后续记录绑定此版本。
+  uint64 mapping_revision = 2; // 实际采用的映射版本；消费者保留自己的换算与误差估计。
+}
+
+message Resync {
+  uint64 request_id = 1; // 基线不匹配时等下一次新采样建立完整快照，避免同连接重复已发送序号；不重绑或重置其他类别。
+}
+
+message Heartbeat {
+  optional uint64 last_completed_capture_sequence = 1; // 历史采集进展，不制造新帧或改写旧时间。
+  uint64 coalesced_pending_states = 2; // 本连接尚未开始发送而被最新完整状态合并的次数。
+  optional uint64 epoch = 3; // 以下流内累计计数所属的已知代次；没有有效代次时不填计数。
+  optional uint64 completed_captures = 4; // 本类别该代次真正完成的采样数，不用序号跨度代替。
+  optional uint64 failed_capture_opportunities = 5; // 已开始但未能生成可提交批次的采样机会数。
+  optional uint64 missed_capture_opportunities = 6; // 忙碌或调度迟到而没有启动的机会数，不补采历史周期。
+  optional uint64 sent_updates = 7; // 本连接完整发送的数据记录数，不代表接收方已解码或发布。
+}
+
+message Envelope {
+  uint32 protocol_version = 1; // 当前协议版本为 1。
+  uint64 event_sequence = 2; // 服务端本连接严格递增事件序号；数据、失效和回执共用排序。
+  optional fixed64 send_started_qpc = 3; // 序列化及 TCP 封装后、首次发送调用前盖戳；后续八字节写入及调用准备属于发送阶段。
+  optional uint64 mapping_revision = 4; // 该记录采用的已确认映射版本；未协商时缺失，不借用其他连接版本。
+  oneof body {
+    Hello hello = 10; // 服务握手，先于订阅及数据。
+    Subscribe subscribe = 11; // 类别订阅请求。
+    SetRate set_rate = 12; // 当前连接调频请求。
+    Configured configured = 13; // 订阅或调频成功回执。
+    Update update = 14; // 消费模式的独立类别更新。
+    DiagnosticUpdate diagnostic_update = 15; // 仅调试模式的更新，消费连接不能收到。
+    Status status = 16; // 可用性及明确失效。
+    Reject reject = 17; // 明确拒绝。
+    ClockQuery clock_query = 18; // 时钟交换请求。
+    ClockSample clock_sample = 19; // 时钟交换响应。
+    UseClockMapping use_clock_mapping = 20; // 选择已经完成校准的映射版本。
+    ClockMappingSelected clock_mapping_selected = 21; // 映射选择回执。
+    Resync resync = 22; // 当前流重新取得完整基线。
+    Heartbeat heartbeat = 23; // 连接与采集进展，不能当作新数据帧。
+  }
+}

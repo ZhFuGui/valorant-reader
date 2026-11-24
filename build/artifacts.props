@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- 默认置于系统临时目录；批量构建可显式指定其他磁盘，源码目录保持整洁。 -->
+    <BuildArtifactsRoot Condition="'$(BuildArtifactsRoot)'==''">$(TEMP)\valorant-reader\build</BuildArtifactsRoot>
+    <OutDir>$(BuildArtifactsRoot)\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(BuildArtifactsRoot)\obj\$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommandArguments>--check</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+</Project>

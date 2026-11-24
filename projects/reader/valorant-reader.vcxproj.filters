@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="backends\shared"><UniqueIdentifier>{9480E616-370A-4CD5-AB18-26D76F54680C}</UniqueIdentifier></Filter>
+    <ClCompile Include="$(ReaderRoot)src\backends\shared\backend.cpp"><Filter>backends\shared</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\backends\shared\backend.hpp"><Filter>backends\shared</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="app"><UniqueIdentifier>{4BD3472D-6E79-41EB-94DB-EC34A412C114}</UniqueIdentifier></Filter>
+    <Filter Include="memory"><UniqueIdentifier>{7913D30F-5CDD-4F9C-A3A3-F77EE905EC29}</UniqueIdentifier></Filter>
+    <Filter Include="model"><UniqueIdentifier>{0103E0EF-BB3A-4222-9FB3-C38A5FC9F307}</UniqueIdentifier></Filter>
+    <Filter Include="capture"><UniqueIdentifier>{89BA75F5-807A-4B82-AFD2-B03B28CC7D30}</UniqueIdentifier></Filter>
+    <Filter Include="game"><UniqueIdentifier>{23BE65EE-81B8-4A8E-94A8-980CC7CEEB9E}</UniqueIdentifier></Filter>
+    <Filter Include="game\valorant"><UniqueIdentifier>{90D62E15-0183-409D-891D-FF78276FF019}</UniqueIdentifier></Filter>
+    <Filter Include="platform"><UniqueIdentifier>{B3FB1586-7F99-4B89-988B-7DE505581B54}</UniqueIdentifier></Filter>
+    <Filter Include="platform\windows"><UniqueIdentifier>{3D27996A-D51A-4133-B493-1A43B0EAC388}</UniqueIdentifier></Filter>
+    <Filter Include="runtime"><UniqueIdentifier>{0AB7D4BD-EC29-42C6-89CF-C3DBAEE56E77}</UniqueIdentifier></Filter>
+    <Filter Include="transport"><UniqueIdentifier>{E02598F8-A7A1-4416-BC16-23723F8E18CF}</UniqueIdentifier></Filter>
+    <Filter Include="build"><UniqueIdentifier>{571AB30D-9010-42D9-B68A-D7B363D4B5E8}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\app\main.cpp"><Filter>app</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\app\application.cpp"><Filter>app</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\app\composition.cpp"><Filter>app</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\profile.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\pointer_codec.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\roots.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\names.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\platform\windows\qpc_clock.cpp"><Filter>platform\windows</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ReaderRoot)src\app\application.hpp"><Filter>app</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\app\composition.hpp"><Filter>app</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\memory\backend.hpp"><Filter>memory</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\memory\read_channel.hpp"><Filter>memory</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\model\snapshot.hpp"><Filter>model</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\capture\source.hpp"><Filter>capture</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\profile.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\offsets.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\pointer_codec.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\roots.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\names.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\reading.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\platform\windows\qpc_clock.hpp"><Filter>platform\windows</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\runtime\output.hpp"><Filter>runtime</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\transport\record.hpp"><Filter>transport</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ReaderRoot)README.md" />
+    <None Include="$(ReaderRoot)build\compiler.props"><Filter>build</Filter></None>
+    <None Include="$(ReaderRoot)build\artifacts.props"><Filter>build</Filter></None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="backends"><UniqueIdentifier>{433829BB-B7D0-5903-9E90-47BCEE416D70}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\app\inspection.cpp"><Filter>app</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\directory.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\platform\windows\pe_image.cpp"><Filter>platform\windows</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ReaderRoot)src\app\inspection.hpp"><Filter>app</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\directory.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\platform\windows\pe_image.hpp"><Filter>platform\windows</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\memory\read_error.hpp"><Filter>memory</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\objects.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\classification.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\types.cpp"><Filter>game\valorant</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\objects.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\classification.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\types.hpp"><Filter>game\valorant</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\observation.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\scene.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\position.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\model\geometry.hpp"><Filter>model</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\observation.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\scene.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\position.hpp"><Filter>game\valorant</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\view.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\view.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\model\camera.hpp"><Filter>model</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\rig.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\rig.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\model\skeleton.hpp"><Filter>model</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\rig_catalog.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\pose.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\rig_catalog.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\pose.hpp"><Filter>game\valorant</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="protocol"><UniqueIdentifier>{A568BEBF-789A-56C6-B9CB-B6D717640864}</UniqueIdentifier></Filter>
+    <Filter Include="protocol\reader"><UniqueIdentifier>{DD0A675D-9CB5-5B62-BD05-9158D2A75B31}</UniqueIdentifier></Filter>
+    <Filter Include="protocol\reader\v1"><UniqueIdentifier>{CF270E7B-C77C-517E-9108-2C554DC7B5D4}</UniqueIdentifier></Filter>
+    <Filter Include="protocol\reader\v1\model"><UniqueIdentifier>{4625AE2C-4534-5D80-8091-A93033FE2734}</UniqueIdentifier></Filter>
+    <Filter Include="protocol\reader\v1\model\foundation"><UniqueIdentifier>{2BD9E43F-373E-5311-887A-AACFA8D40133}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ReaderRoot)protocol\reader\v1\contract.json"><Filter>protocol\reader\v1</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\diagnostic.proto"><Filter>protocol\reader\v1</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\model\foundation\common.proto"><Filter>protocol\reader\v1\model\foundation</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\model\position.proto"><Filter>protocol\reader\v1\model</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\model\skeleton.proto"><Filter>protocol\reader\v1\model</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\model\view.proto"><Filter>protocol\reader\v1\model</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\reader.proto"><Filter>protocol\reader\v1</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\reader.descriptor.pb"><Filter>protocol\reader\v1</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\schema-manifest.json"><Filter>protocol\reader\v1</Filter></None>
+    <None Include="$(ReaderRoot)protocol\reader\v1\update.proto"><Filter>protocol\reader\v1</Filter></None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(ReaderRoot)src\capture\clock.hpp"><Filter>capture</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\capture\demand.hpp"><Filter>capture</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\capture\provider.hpp"><Filter>capture</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\entity_catalog.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\entity_catalog.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\model\stream.hpp"><Filter>model</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\runtime\work_pool.cpp"><Filter>runtime</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\runtime\work_pool.hpp"><Filter>runtime</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\capture_service.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\capture_service.hpp"><Filter>game\valorant</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="synchronization"><UniqueIdentifier>{8A3DBE50-D3B4-5E03-9424-334959E7F390}</UniqueIdentifier></Filter>
+    <Filter Include="synchronization\v1"><UniqueIdentifier>{1F18A606-89FB-55F7-BECA-EA80561354C6}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\app\server.cpp"><Filter>app</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\app\server.hpp"><Filter>app</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\synchronization\v1\codec.cpp"><Filter>synchronization\v1</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\codec.hpp"><Filter>synchronization\v1</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\synchronization\v1\request.cpp"><Filter>synchronization\v1</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\request.hpp"><Filter>synchronization\v1</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\schema.hpp"><Filter>synchronization\v1</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\synchronization\v1\service.cpp"><Filter>synchronization\v1</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\service.hpp"><Filter>synchronization\v1</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\synchronization\v1\wire.cpp"><Filter>synchronization\v1</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\synchronization\v1\wire.hpp"><Filter>synchronization\v1</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\transport\ipv4.hpp"><Filter>transport</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\transport\record_decoder.hpp"><Filter>transport</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\transport\record_handler.hpp"><Filter>transport</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\transport\tcp_peer.cpp"><Filter>transport</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\transport\tcp_peer.hpp"><Filter>transport</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\transport\tcp_server.cpp"><Filter>transport</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\transport\tcp_server.hpp"><Filter>transport</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\components.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\components.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\context.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\context.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\game\valorant\team.cpp"><Filter>game\valorant</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\game\valorant\team.hpp"><Filter>game\valorant</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\model\context.hpp"><Filter>model</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(ReaderRoot)src\app\arguments.cpp"><Filter>app</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\app\arguments.hpp"><Filter>app</Filter></ClInclude>
+    <ClCompile Include="$(ReaderRoot)src\runtime\binding_health.cpp"><Filter>runtime</Filter></ClCompile>
+    <ClInclude Include="$(ReaderRoot)src\runtime\binding_health.hpp"><Filter>runtime</Filter></ClInclude>
+    <ClInclude Include="$(ReaderRoot)src\runtime\recovery.hpp"><Filter>runtime</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="resources"><UniqueIdentifier>{D9D333FC-727F-5D2B-8FDB-8E325A058B00}</UniqueIdentifier></Filter>
+    <ResourceCompile Include="$(ReaderRoot)resources\version.rc"><Filter>resources</Filter></ResourceCompile>
+    <None Include="$(ReaderRoot)LICENSE.txt" />
+  </ItemGroup>
+</Project>

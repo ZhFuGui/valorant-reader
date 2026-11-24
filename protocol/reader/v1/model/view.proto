@@ -1,0 +1,24 @@
+syntax = "proto3";
+package valorant.reader.v1.model;
+import "reader/v1/model/foundation/common.proto";
+
+enum Projection {
+  PROJECTION_UNKNOWN = 0; // 原生投影未被确认，不能自动按透视投影绘制。
+  PROJECTION_PERSPECTIVE = 1; // 原生透视模式。
+  PROJECTION_ORTHOGRAPHIC = 2; // 原生正交模式。
+}
+
+message Camera {
+  Vector3 world_position = 1; // 相机缓存的世界位置，不以身体位置替代。
+  Rotation rotation = 2; // 相机缓存的已求值旋转，不以控制旋转替代。
+  Projection projection = 3; // 已解释的投影模式；原生未识别数字保持未知，不强行转换为透视。
+  optional float fov = 4; // 原生透视视场角；最终窗口、轴向和缩放处理仍由消费者核验。
+  optional float aspect_ratio = 5; // 原生期望画幅比例，不等同当前窗口宽高比。
+  optional bool constrain_aspect_ratio = 6; // 原生画幅约束位；false 与缺失不同。
+  optional float ortho_width = 7; // 原生正交宽度，正交模式下使用。
+  optional float engine_cache_time = 8; // 原生相机缓存时间，不能与 QPC 直接相减。
+}
+
+message ViewState {
+  Camera camera = 1; // 完整替换相机状态；缺失清除旧相机，不要求本地身体或人物集合存在。
+}

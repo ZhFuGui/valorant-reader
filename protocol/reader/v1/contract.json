@@ -1,0 +1,168 @@
+{
+  "protocol": "valorant.reader.v1",
+  "status": "implemented_validated",
+  "runtime_server_implemented": true,
+  "streams": {
+    "positions": 1,
+    "skeletons": 2,
+    "view": 3,
+    "rule": "三类独立订阅、独立调频、独立采样区间；不建立共同采集帧或相互完成屏障。"
+  },
+  "transport": {
+    "mode": "TCP",
+    "suggested_default_bind": "127.0.0.1",
+    "suggested_port": 13302,
+    "lan": "启动时显式绑定本机网卡 IPv4 或 0.0.0.0；客户端连接实际网卡地址。",
+    "record": "四字节无符号大端正文长度，紧接 Envelope；长度不含前缀。",
+    "minimum_body_bytes": 1,
+    "maximum_body_bytes": 16777216,
+    "default_connection_budget": 16,
+    "connection_budget_configurable": true,
+    "handshake": [
+      "Hello",
+      "Subscribe",
+      "Configured 或 Reject",
+      "Snapshot；后续 Delta、Status、Heartbeat"
+    ],
+    "client_messages": [
+      "Subscribe",
+      "SetRate",
+      "ClockQuery",
+      "UseClockMapping",
+      "Resync"
+    ],
+    "direction": "客户端不发送数据帧、服务端状态或写内存命令；未知方向、重复消息体或缺失必需身份明确拒绝。",
+    "subscription_identity": "每连接固定一个类别；同一消费者其他类别连接不受单连接重订阅和恢复影响。",
+    "strict_schema": "版本及 32 字节规范描述符摘要精确匹配；首版已冻结，不维护旧草案兼容分支。",
+    "maximum_client_control_body_bytes": 4096,
+    "maximum_control_records_per_connection": 16,
+    "control_budget": "客户端只有小型控制请求；超过控制正文或有界控制队列预算时明确拒绝或关闭连接，不能让请求反压读取工作池。",
+    "maximum_configurable_connections": 60,
+    "connection_budget_configuration": "--max-connections 1..60；默认16，预算只限制连接资源，不限制 Actor 数量。",
+    "oversized_update": "完整编码超过16MiB时不截断，当前连接收到 Unavailable 和原因1008；清除其基线，不反复编码同一失败采样，新采样可重试，不影响其他连接。"
+  },
+  "rates": {
+    "minimum_hz": 1,
+    "maximum_business_hz": 300,
+    "fractional": true,
+    "category_demand": "同类别全部有效订阅的最大请求；每连接按自己请求限频。",
+    "foundation_targets": "分类目标=max(有效类别需求)+1Hz，完整名单复制再加1Hz；无订阅为1Hz、2Hz，上层属性停采。",
+    "adoption": "纳秒周期 round(1e9/requested_hz)，在回执显式给出；非法值、非有限值、超限或版本冲突拒绝。",
+    "config_revision": "全部相关频率计算后一次提交版本；开批冻结；在途不改，发送不套用新配置。SetRate 前置版本为本连接最后 Configured 回执版本，其他连接更新不使它失效。",
+    "misses": "每类最多一个在途及一个待机会；迟到、忙碌和未启动如实计数，不积压历史周期或削减 Actor 覆盖。",
+    "limits": "目标频率不承诺实机达成率，基础过载不得隐藏。"
+  },
+  "identity": {
+    "entity_key": [
+      "reader_instance_id",
+      "epoch",
+      "entity_id"
+    ],
+    "allocation": "身份由 Reader 的生命周期目录分配；原始地址、注册索引和原生骨点下标只进调试投影。",
+    "cross_stream": "同对象在位置与骨骼流使用同一身份；关联缺失或另一流尚未到达不删除本流记录。",
+    "lifetime_limit": "弱序号为零不提供原生代际证明；必须记录有限来源核验边界，不能宣称永久身份或完全排除 ABA。",
+    "semantic_limit": "当前仅确认原生 Character/ShooterCharacter 及相应属性，不声明已区分真人、BOT、队伍、存活或可见性。"
+  },
+  "updates": {
+    "baseline": "新订阅、重连、Resync、epoch 改变或明确不可用后恢复，先发新的完整 Snapshot。",
+    "delta_base": "仅相对本连接最后完整写出的状态；base_capture_sequence 必须等于接收端当前已应用序号，同 epoch、同类别。",
+    "ordering": "TCP 记录连续完整发送；不可交错或修改发送中记录。接收端先按序解码应用，再独立发布渲染。",
+    "upserts": "每条 upsert 完整替换该实体本类别记录；缺失字段清除旧值，不按字段继承。",
+    "removed": "只对已确认退出集合的实体删除。属性缺失以同 ID 无值记录表示，不伪装成销毁。upserts、removed 各自唯一且互斥。",
+    "same_state": "本批重新读取后值确实相同时可以发空变化 Delta；meta、采样序号和时间仍来自本批，不重发旧采样冒充新读取。",
+    "recovery": "基线不匹配停止应用后续增量并 Resync；已开始旧记录先完成，撤销尚未发送旧候选，等待下一次新采样建立完整快照，避免同连接重复已发送序号。",
+    "ack": "TCP 连续应用模式不为每帧增加业务 ACK；不能将完整写出解释成消费者已经解码或发布。",
+    "backpressure": "每连接一条发送中记录和一个最新完整待发送状态；仅待发送状态可合并。发送失败关闭连接，新连接从完整基线恢复。",
+    "age": "不设置采集帧有效期或按记录年龄淘汰；读取工作池不等待慢消费者。",
+    "invalidation": "明确失败与数据共用事件顺序。无法在有界队列中安全送达失效时关闭连接；旧 epoch 晚完成结果不得复活。"
+  },
+  "projection": {
+    "default": "consumer",
+    "consumer": "只传消费数据及必要身份、配置和时间；没有地址、分类证据、原生骨点下标或逐帧父子关系。",
+    "diagnostic": "显式选择；DiagnosticUpdate 绑定同一 Update，可携带实际来源、覆盖、原始身份及失败阶段。",
+    "execution": "消费模式不读取或构造纯调试字段；正常正确性所需的身份、指针链和解释核验仍保留。",
+    "capabilities": "只声明服务实际实现的类别和功能；定义了消息不代表功能就绪。"
+  },
+  "presence": {
+    "vectors": "Vector3 消息存在表示三分量均已取得；全零原点合法，即使编码体为空。消息缺失才表示没有坐标。",
+    "scalars": "optional 的缺失、零和 false 不同，不从旧批或其他流填值。",
+    "collections": "Snapshot 合法空列表清空本流；集合中记录无属性值只清除该实体的对应属性。",
+    "numeric": "所有有效浮点必须有限；JavaScript 的 uint64/fixed64 使用 BigInt、无损 Long 或十进制字符串，不能经 Number 舍入。"
+  },
+  "skeleton": {
+    "layout": 1,
+    "joint_count": 22,
+    "parent_indices": [
+      -1,
+      0,
+      0,
+      2,
+      3,
+      4,
+      3,
+      6,
+      7,
+      8,
+      3,
+      10,
+      11,
+      12,
+      1,
+      14,
+      15,
+      16,
+      1,
+      18,
+      19,
+      20
+    ],
+    "mask": "仅低22位，位序按 MainJoint；置位点按升序排列，每点三个 double，数量=popcount(mask)*3。",
+    "no_points": "没有有效点时整体 skeleton 缺失，不发送空成功骨架。",
+    "static_metadata": "常量语义和连线由协议定义，不逐帧传输，不传原生数组下标；未知模型不套用此布局。",
+    "native_space": "骨点已是世界坐标，消费者不得再次累计父骨变换。"
+  },
+  "camera": {
+    "independent": "不要求 Pawn、人物位置、骨骼或其他流存在；死亡与观战不因身体缺失而自动清空有效相机。",
+    "projection": "未知投影不能自动按透视解释；原生 FOV、画幅和约束不等于已经核验最终窗口投影矩阵。",
+    "time": "engine_cache_time 为原生时间，不能直接与 QPC 相减。"
+  },
+  "timing": {
+    "capture": "started_qpc 在本类别第一次读取前；read_finished_qpc 在最后读取与必要核验后；finished_qpc 在纯CPU整理提交后。",
+    "sending": "序列化和 TCP 封装完成后，首次发送调用前取得 QPC 并原位写入预留 fixed64；后续八字节写入及调用准备开销属于发送阶段。",
+    "stamp_failure": "缺失锚点保持缺失；不能发出占位0或上一记录的时间。不能取得真实发送锚点时重新封装为缺失或明确拒绝该记录。",
+    "clock": "Hello 固定 Reader 时钟域、频率和版本；原始锚点全部保持这个时间域。",
+    "mapping": "客户端记录 t0/t3，ClockSample.received_qpc 是 t1，响应 Envelope.send_started_qpc 是 t2；换算频率后估计映射及误差。ClockQuery 候选不自动启用，UseClockMapping 确认最新仍有效候选后返回 ClockMappingSelected。",
+    "mapping_boundary": "已开始记录保留原版本并在回执前完成；回执后尚未开始的记录绑定新版本。换算参数与误差估计由消费者维护，不把不同时钟原值直接相减。",
+    "fps": "采集机会、完成次数、发送次数和接收发布次数分别统计；不能用序号跨度或心跳冒充实际帧数。"
+  },
+  "reason_codes": {
+    "1001": "请求格式、方向或必要身份无效",
+    "1002": "协议版本不符",
+    "1003": "描述符摘要不符",
+    "1004": "类别或投影未实现",
+    "1005": "请求频率非法或超过上限",
+    "1006": "配置前置版本冲突",
+    "1007": "时钟映射候选无效或未采样",
+    "1008": "资源预算超限或编码失败",
+    "1009": "服务或当前会话暂不可用"
+  },
+  "not_implemented": [
+    "真人、BOT及存活等进一步业务分类",
+    "非Bomb团队关系规则、装备及其他游戏专属属性",
+    "有效LeaderPose的实机样本验证"
+  ],
+  "revision": 2,
+  "position_context": {
+    "ownership": "附属于 Positions 本批；三流独立，不等待 Skeletons 或 View。上下文缺值不撤销仍有效的坐标。",
+    "snapshot": "PositionCollection.context 必须存在，local_character 消息也必须存在，Unknown 显式表达。",
+    "delta": "PositionChanges.context 存在时整体替换，内部缺失清除旧值；缺失表示本批已重新读取且上下文未变化。",
+    "map": "由当前 UWorld 及其最外层 UPackage 身份、类型、名称池来源关闭核验得到 package_path/world_name；不含底图坐标换算参数。",
+    "local": "Unknown=0：控制链未核验；Absent=1：确认无受控 Character；Unresolved=2：确认身体但未关联当前 Reader 集合；Resolved=3：entity_id 非零，作用域为实例+epoch。",
+    "body_source": "LocalPlayers[0].Controller.Pawn 必须确认为 Character，并由 Pawn.Controller 反向核验。AcknowledgedPawn、PlayerState.PawnPrivate 与相机 ViewTarget 不作为身体回退。",
+    "reference": "reference_team 来源为同一本地控制器 PlayerState.TeamComponent，独立于身体存在；不使用被观战人物的队伍。",
+    "relationship": "Unknown0/Self1/Ally2/Enemy3。Self 必须与本批已解析本地 ID 一致；Ally/Enemy 仅按已核验原生 Bomb 关系实现判定，缺失或未支持不当作 Enemy。",
+    "team": "当前支持 BombTeam 原生字节，oneof bomb_team 保留 0 的存在性；0xfe 对应未知关系，其他值相同为友方、不同为敌方。其他原生方案不套用此规则。",
+    "team_source": "人物 PlayerState 的游戏专属 TeamComponent 需类型及本次关联核验；无 PlayerState 的训练 BOT 查询自身原生稀疏组件集合，核验成员、排除项类型、来源和关闭状态。",
+    "schema_pairing": "revision2 的描述符摘要与旧 revision1 不同，必须成对更新；protocol_version 保持1，不在旧摘要下增加新字段。"
+  }
+}

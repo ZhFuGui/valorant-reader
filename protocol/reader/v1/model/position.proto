@@ -1,0 +1,22 @@
+syntax = "proto3";
+package valorant.reader.v1.model;
+import "reader/v1/model/foundation/common.proto";
+import "reader/v1/model/context.proto";
+
+message EntityPosition {
+  uint64 entity_id = 1; // Reader 分配的非零身份；作用域为 Reader 实例与 epoch，不是地址或注册索引。
+  Vector3 world_position = 2; // 角色根组件的当前世界坐标；缺失清除旧坐标，不解释成死亡或原点。
+  TeamIdentity team = 3; // 本次角色的原生团队；缺失清除旧队伍，不伪造队伍0。
+  Relationship relationship = 4; // 对本批上下文的本地参照关系；Unknown 不允许当作 Enemy。
+}
+
+message PositionCollection {
+  repeated EntityPosition entities = 1; // 完整人物位置集合；合法空集合表示本次没有已确认人物。
+  PositionContext context = 3; // 完整快照必须存在；与本次位置批次同时间区间，不要求骨骼或相机同时采样。
+}
+
+message PositionChanges {
+  repeated EntityPosition upserts = 1; // 新增或完整替换这些实体的位置记录；记录内缺失字段不会继承旧值。
+  repeated uint64 removed_entity_ids = 2; // 明确移出该集合的身份；不能与 upserts 存在交集。
+  PositionContext context = 3; // 存在时整体替换上下文，内部缺失清除旧字段；缺失表示本批新读取后上下文未变化。
+}
