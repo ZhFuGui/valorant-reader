@@ -34,7 +34,7 @@ valorant-reader/
 
 默认要求同级目录存在 `../readers-shared`，也可通过 MSBuild 的 `ReadersSharedDirectory` 指定其目录。工程组合导入 `readers-shared.props`（唯一 Hyper-mem 后端）及 `readers-shared-tcp.props`；共享源码沿用产品的 CRT、异常展开和优化配置，公共 QPC 只编译一次，独立对象文件位于外置的 `IntDir/readers-shared`。共享层负责进程发现、会话、原生读取、监听、组包、短写及网络预算；游戏对象核验、两个采集 worker、调度、epoch 与订阅仍由本项目管理。
 
-本轮共享源码接入基线为 [readers-shared](https://github.com/ZhFuGui/readers-shared.git) 提交 `47655f96288f0d67d8bdcad2d30bdd69c5f82618`（当前是共享层本地提交，尚未推送）；此前仅含内存入口的 `5a0fb3e` 不能构建本轮 TCP 接入版本。构建前须准备对应源码、构建入口与许可证；Hyper-mem ABI 的独立来源仍见共享层 `third_party/hypermem/UPSTREAM.json`，本项目不复制其内部实现。
+共享源码依赖固定为 [readers-shared](https://github.com/ZhFuGui/readers-shared.git) 提交 `47655f96288f0d67d8bdcad2d30bdd69c5f82618`，已发布至共享仓库 `main`；此前仅含内存入口的 `5a0fb3e` 不能构建本轮 TCP 接入版本。构建前须具备共享仓库读取权限，并准备对应源码、构建入口与许可证；Hyper-mem ABI 的独立来源仍见共享层 `third_party/hypermem/UPSTREAM.json`，本项目不复制其内部实现。
 
 默认产物位于 `%TEMP%\valorant-reader\build`。可指定其他磁盘：
 
