@@ -1,10 +1,13 @@
-# 默认忽略，仅允许产品源码、工程配置和正式协议入库。
+# 默认忽略，仅放行产品及交付所需文件。
 *
 !/.gitignore
 !/.gitattributes
-!/.clang-format
+
+# README 提供固定构建依赖、安装和消费端接入说明；许可证随程序交付。
 !/README.md
 !/LICENSE.txt
+
+# VS 工程、编译配置和程序资源。
 !/valorant-reader.sln
 
 !/projects/
@@ -19,25 +22,61 @@
 !/resources/
 !/resources/version.rc
 
+# 产品源码按现有模块和 C++ 文件类型放行。
 !/src/
 !/src/**/
-!/src/**/*.hpp
-!/src/**/*.cpp
+!/src/app/*.[ch]pp
+!/src/backends/shared/*.[ch]pp
+!/src/capture/*.[ch]pp
+!/src/game/valorant/*.[ch]pp
+!/src/memory/*.[ch]pp
+!/src/model/*.[ch]pp
+!/src/platform/windows/*.[ch]pp
+!/src/runtime/*.[ch]pp
+!/src/synchronization/v1/*.[ch]pp
+!/src/transport/*.[ch]pp
 
+# 消费端构建与握手校验所用的正式协议文件。
 !/protocol/
-!/protocol/**/
-!/protocol/**/*.proto
-!/protocol/**/contract.json
-!/protocol/**/schema-manifest.json
-!/protocol/**/*.descriptor.pb
+!/protocol/reader/
+!/protocol/reader/v1/
+!/protocol/reader/v1/diagnostic.proto
+!/protocol/reader/v1/reader.proto
+!/protocol/reader/v1/update.proto
+!/protocol/reader/v1/model/
+!/protocol/reader/v1/model/context.proto
+!/protocol/reader/v1/model/position.proto
+!/protocol/reader/v1/model/skeleton.proto
+!/protocol/reader/v1/model/view.proto
+!/protocol/reader/v1/model/foundation/
+!/protocol/reader/v1/model/foundation/common.proto
+!/protocol/reader/v1/contract.json
+!/protocol/reader/v1/schema-manifest.json
+!/protocol/reader/v1/reader.descriptor.pb
 
-# 本地工具、日志、dump、测试和 agent 文件不属于产品源码。
-**/.codex*/
-**/.claude*/
+# 测试、基准和开发助手文件在源码模块下也必须忽略。
 **/test/
 **/tests/
 /src/**/test_*
 /src/**/test-*
+/src/**/test.[ch]pp
+/src/**/tests.[ch]pp
+**/*.test.*
+**/*.spec.*
+**/*.bench.*
 /src/**/*_test.*
 /src/**/*_tests.*
+/src/**/*_spec.*
+/src/**/*_bench.*
+/src/**/*_benchmark.*
 /src/**/*_checks.*
+/src/**/bench_*
+/src/**/benchmark_*
+**/AGENTS.md
+**/CLAUDE.md
+**/GEMINI.md
+**/.agents/
+**/.claude*/
+**/.codex*/
+**/.cursor/
+**/.gemini/
